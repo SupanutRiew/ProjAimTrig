@@ -1,3 +1,3 @@
 # ProjTradeGoods
-Python project. game cheats
+Python project.
 Supanut Sriburachai 64011636
