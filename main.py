@@ -1,27 +1,18 @@
 import sys
 from PyQt5.uic import loadUi
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QDialog, QApplication, QWidget, QFileDialog
+from PyQt5.QtWidgets import QDialog, QApplication, QWidget, QFileDialog, QLabel
 from PyQt5.QtGui import QPixmap
+import sqlite3
 
-class aboutpage(QDialog):
-    def __init__(self):
-        super(aboutpage, self).__init__()
-        loadUi("aboutpage.ui",self)
-        self.gobackfromabout.clicked.connect(self.goback)
-    #back to first page
-    def goback(self):
-        back = Firstpage()
-        widget.addWidget(back)
-        widget.setCurrentIndex(widget.currentIndex()+1)
-        
+
+#DONE  
 class Firstpage(QDialog):
     def __init__(self):
         super(Firstpage, self).__init__()
         loadUi("Firstpage.ui",self)
         self.gotologinpage.clicked.connect(self.login)
         self.setup.clicked.connect(self.setupchyt)
-        self.aboutbutton.clicked.connect(self.about)
         self.deletebutton.clicked.connect(self.delete)
     #go to login page
     def login(self):
@@ -33,17 +24,12 @@ class Firstpage(QDialog):
         setup = setuppage()
         widget.addWidget(setup)
         widget.setCurrentIndex(widget.currentIndex()+1)
-    #go to about page
-    def about(self):
-        about = aboutpage()
-        widget.addWidget(about)
-        widget.setCurrentIndex(widget.currentIndex()+1)
     #go to delete page
     def delete(self):
         delete = deletepage()
         widget.addWidget(delete)
         widget.setCurrentIndex(widget.currentIndex()+1)
-        
+#DONE    
 class Loginpage(QDialog):
     def __init__(self):
         super(Loginpage, self).__init__()
@@ -57,10 +43,97 @@ class Loginpage(QDialog):
         widget.setCurrentIndex(widget.currentIndex()+1)
     #login
     def loginfunc(self):
+        global myfuckingid
+        global tofindmatch
+        global tofindgoal
         proid = self.productid.text()
         password = self.password.text()
         if proid == "" or password == "":
-            self.errormessage.setText("All fields are required")
+            self.errormessage.setText("Input all fields")
+        else:
+            connect = sqlite3.connect("account.db")
+            cur = connect.cursor()
+            query = 'SELECT productpassword FROM login WHERE productID =\''+proid+"\'"
+            cur.execute(query)
+            try:
+                result = cur.fetchone()[0]
+                if result == password:
+                    newquery = 'SELECT producttag FROM login WHERE productID =\''+proid+"\'"
+                    cur.execute(newquery)
+                    tofindmatch = cur.fetchone()[0]
+                    ewquery = 'SELECT goaltag FROM login WHERE productID =\''+proid+"\'"
+                    cur.execute(ewquery)
+                    tofindgoal = cur.fetchone()[0]
+                    myfuckingid = proid
+                    match = matchpage()
+                    widget.addWidget(match)
+                    widget.setCurrentIndex(widget.currentIndex()+1)
+                else:
+                    self.errormessage.setText("Invalid password")
+            except:
+                self.errormessage.setText("Account does not exist")
+class matchpage(QDialog):
+    def __init__(self):
+        super(matchpage, self).__init__()
+        loadUi("matchpage.ui", self)
+        self.tableWidget.setColumnWidth(0, 279)
+        self.tableWidget.setColumnWidth(1, 279)
+        self.tableWidget.setColumnWidth(2, 279)
+        self.tableWidget.setColumnWidth(3, 183)
+        self.tableWidget.setVisible(False)
+        self.returntologin.clicked.connect(self.gologin)
+        self.showbutton.clicked.connect(self.display)
+    #display on table
+    def display(self):
+        self.tableWidget.setVisible(True)
+        connect = sqlite3.connect("account.db")
+        cur = connect.cursor()
+        sqlquery = "SELECT * FROM login"
+        rowcount = 1
+        table =0
+        addshit = 0
+        for row in cur.execute(sqlquery):
+            
+            hisid, name, descrip, contact, blobimage, hisgoal, histag =  row[0], row[3], row[4], row[2], row[7], row[6], row[5]
+            if myfuckingid != hisid:
+                if tofindmatch in hisgoal:
+                    if histag in tofindgoal:
+                        addshit+= 1
+                        if addshit >= 3:
+                            self.tableWidget.setColumnWidth(0, 273)
+                            self.tableWidget.setColumnWidth(1, 274)
+                            self.tableWidget.setColumnWidth(2, 273)
+                            self.tableWidget.setColumnWidth(3, 183)
+                            
+                        self.tableWidget.setRowCount(rowcount)
+                        self.tableWidget.setRowHeight(table, 183)
+                        #change this shit image
+                                                        #fucking shit pictures
+                        
+                        self.tableWidget.setItem(table, 0, QtWidgets.QTableWidgetItem(name))
+                        self.tableWidget.setItem(table, 1, QtWidgets.QTableWidgetItem(descrip))
+                        self.tableWidget.setItem(table, 2, QtWidgets.QTableWidgetItem(contact))
+                        #from here to pixmap delete
+                        item = self.getImageLabel(blobimage)
+                        #convert finished. Now how do i fucking add it to the table
+                        self.tableWidget.setCellWidget(table, 3, item)
+                        rowcount+=1
+                        table+=1
+                        
+    def getImageLabel(self,blobimage):
+        #เป็นเหี้ยอะไรวะไอสัส
+        newlabel = QtWidgets.QLabel()
+        newlabel.setText("")
+        pixmap = QPixmap()
+        pixmap.loadFromData(blobimage)
+        puxmap = pixmap.scaledToHeight(183)
+        newlabel.setPixmap(puxmap)
+        return newlabel
+    #back to login
+    def gologin(self):
+        login = Loginpage()
+        widget.addWidget(login)
+        widget.setCurrentIndex(widget.currentIndex()+1)
 
 class setuppage(QDialog):
     listgood = []
@@ -70,7 +143,8 @@ class setuppage(QDialog):
         self.gobackfromsetup.clicked.connect(self.goback)
         self.mytag.currentIndexChanged.connect(self.realtag)
         self.uploadimagebutton.clicked.connect(self.loadimage)
-
+        self.finishsetupbutton.clicked.connect(self.confirm)
+        
         self.checkallclothes.clicked.connect(self.allclothes)
         self.checkallaccessories.clicked.connect(self.allaccessories)
         self.checkallshoes.clicked.connect(self.allshoes)
@@ -83,6 +157,7 @@ class setuppage(QDialog):
         self.checkallhomeapp.clicked.connect(self.allhomeapp)
         self.checkallsports.clicked.connect(self.allsports)
         self.uncheckall.clicked.connect(self.uncheck)
+        self.checkall.clicked.connect(self.fuckin)
         
         self.pajamas.stateChanged.connect(self.pajamasclothes)
         self.tanktops.stateChanged.connect(self.tanktopsclothes)
@@ -216,7 +291,50 @@ class setuppage(QDialog):
         self.otherbags_2.stateChanged.connect(self.otherbags_2sports)
 
         self.others.stateChanged.connect(self.otherszzz)
-
+    #finish set up
+    def confirm(self):
+        samecount = 0
+        prodid = self.productid.text()
+        passw = self.password.text()
+        contact = self.contactinfo.text()
+        name = self.productname.text()
+        prodtag = self.smalltag.currentText()
+        descrip = self.description.toPlainText()
+        goal = self.listgood
+        # how tf do i add picture
+        if prodid == "" or passw == "" or contact == "" or name == "" or descrip == "":
+            self.errormessage.setText("Fill Out All Fields")
+        elif goal == []:
+            self.errormessage.setText("Choose at least one goal")
+        else:
+            connect = sqlite3.connect("account.db")
+            cur = connect.cursor()
+            query = 'SELECT productid FROM login'
+            cur.execute(query)
+            result = cur.fetchall()
+            #This prevent multiple products from having same ids.
+            for i in range (len(result)):
+                if prodid in result[i]:
+                    samecount+=1
+            if samecount > 0:
+                self.errormessage.setText("This Product ID already exists")
+            else:
+                #this comes after same id
+                self.errormessage.setText("")
+                goalstring = '%'.join([str(item) for item in goal])
+                goalstring = '%' + goalstring + '%'
+                prodtag = '%' + prodtag + '%'
+          
+                try:
+                    info = [prodid, passw, contact, name, descrip, prodtag, goalstring, baseimagereal]#add image duay
+                    cur.execute('INSERT INTO login VALUES(?,?,?,?,?,?,?,?)', info)
+                    connect.commit()
+                    connect.close()
+                    back = Firstpage()
+                    widget.addWidget(back)
+                    widget.setCurrentIndex(widget.currentIndex()+1)
+                except:
+                    self.errormessage.setText("Add an image")
     #uncheck all
     def uncheck(self):
         self.others.setChecked(False)
@@ -493,6 +611,142 @@ class setuppage(QDialog):
         self.golf.setChecked(True)
         self.rugby.setChecked(True)
         self.otherbags_2.setChecked(True)
+        
+    def fuckin(self):
+        self.others.setChecked(True)
+        
+        self.chains.setChecked(True)
+        self.earrings.setChecked(True)
+        self.scarves.setChecked(True)
+        self.ties.setChecked(True)
+        self.bangles.setChecked(True)
+        self.leatherstraps.setChecked(True)
+        self.necklaces.setChecked(True)
+        self.watches.setChecked(True)
+        self.gloves.setChecked(True)
+        self.cuffs.setChecked(True)
+        self.suspenders.setChecked(True)
+        self.hats.setChecked(True)
+        self.glasses.setChecked(True)
+        self.otheraccessories.setChecked(True)
+
+        self.boots.setChecked(True)
+        self.highheelboots.setChecked(True)
+        self.sneakers.setChecked(True)
+        self.skateshoes.setChecked(True)
+        self.flipflops.setChecked(True)
+        self.runningshoes.setChecked(True)
+        self.sportshoes.setChecked(True)
+        self.smartshoes.setChecked(True)
+        self.sandals.setChecked(True)
+        self.slipons.setChecked(True)
+        self.othershoes.setChecked(True)
+
+        self.backpackwaistbags.setChecked(True)
+        self.clutchhandheldbags.setChecked(True)
+        self.crossbodyshoulderbags.setChecked(True)
+        self.athleticbags.setChecked(True)
+        self.luggagetrunks.setChecked(True)
+        self.walletspurses.setChecked(True)
+        self.leathergoods.setChecked(True)
+        self.otherbags.setChecked(True)
+
+        self.earphones.setChecked(True)
+        self.cableschargers.setChecked(True)
+        self.powerbank.setChecked(True)
+        self.tablet.setChecked(True)
+        self.casescovers.setChecked(True)
+        self.screenprotector.setChecked(True)
+        self.mobilephones.setChecked(True)
+        self.othermobilegadgets.setChecked(True)
+
+        self.laptop.setChecked(True)
+        self.mousekeyboard.setChecked(True)
+        self.headphones.setChecked(True)
+        self.speakers.setChecked(True)
+        self.microphones.setChecked(True)
+        self.printers.setChecked(True)
+        self.monitors.setChecked(True)
+        self.computers.setChecked(True)
+        self.cables.setChecked(True)
+        self.chargers.setChecked(True)
+        self.othercomputerslaptop.setChecked(True)
+
+        self.cameras.setChecked(True)
+        self.actioncameras.setChecked(True)
+        self.film.setChecked(True)
+        self.lens.setChecked(True)
+        self.cctv.setChecked(True)
+        self.additionalgears.setChecked(True)
+        self.othercameras.setChecked(True)
+
+        self.discscartridges.setChecked(True)
+        self.gaminggears.setChecked(True)
+        self.collectibles.setChecked(True)
+        self.souvenirs.setChecked(True)
+        self.boardgames.setChecked(True)
+        self.othergames.setChecked(True)
+
+        self.tv.setChecked(True)
+        self.projectors.setChecked(True)
+        self.mediaplayers.setChecked(True)
+        self.musicinstruments.setChecked(True)
+        self.otherhomeentertainment.setChecked(True)
+        
+        self.pajamas.setChecked(True)
+        self.tanktops.setChecked(True)
+        self.sportssweaters.setChecked(True)
+        self.suitjackets.setChecked(True)
+        self.leatherjackets.setChecked(True)
+        self.overcoats.setChecked(True)
+        self.tshirts.setChecked(True)
+        self.shirts.setChecked(True)
+        self.hoodies.setChecked(True)
+        self.sweaters.setChecked(True)
+        self.poloshirts.setChecked(True)
+        self.dresses.setChecked(True)
+        self.croppedshirts.setChecked(True)
+        self.jeans.setChecked(True)
+        self.workpants.setChecked(True)
+        self.shorts.setChecked(True)
+        self.sportspants.setChecked(True)
+        self.suitpants.setChecked(True)
+        self.skirts.setChecked(True)
+        self.sportsshorts.setChecked(True)
+        self.leggings.setChecked(True)
+        self.leatherpants.setChecked(True)
+        self.fittedsuitpants.setChecked(True)
+        self.otherclothes.setChecked(True)        
+        
+        self.microwaveoven.setChecked(True)
+        self.fan.setChecked(True)
+        self.refrigerator.setChecked(True)
+        self.airconditioner.setChecked(True)
+        self.airpurifier.setChecked(True)
+        self.vacuumcleaner.setChecked(True)
+        self.washingmachine.setChecked(True)
+        self.otherhomeappliances.setChecked(True)
+
+        self.fitness.setChecked(True)
+        self.campinggears.setChecked(True)
+        self.fishing.setChecked(True)
+        self.climbinggears.setChecked(True)
+        self.skateboards.setChecked(True)
+        self.scooters.setChecked(True)
+        self.football.setChecked(True)
+        self.basketball.setChecked(True)
+        self.tennis.setChecked(True)
+        self.badminton.setChecked(True)
+        self.tabletennis.setChecked(True)
+        self.baseball.setChecked(True)
+        self.divinggears.setChecked(True)
+        self.surf.setChecked(True)
+        self.bicyclegears.setChecked(True)
+        self.golf.setChecked(True)
+        self.rugby.setChecked(True)
+        self.otherbags_2.setChecked(True)
+
+
         
     #check box pajamas
     def pajamasclothes(self):
@@ -1621,11 +1875,18 @@ class setuppage(QDialog):
 
     #load image
     def loadimage(self):
-        file = QFileDialog.getOpenFileName(self, 'Open File', 'c:/Image', 'Image Files (*.png *.jpg *gif)')
-        image_path = file[0]
-        pixmap = QPixmap(image_path)
-        self.displayimage.setPixmap(QPixmap(pixmap))
-
+        global baseimagereal
+        try:
+            file = QFileDialog.getOpenFileName(self, 'Open File', 'c:', 'Image Files (*.png *.jpg *gif)')
+            image_path = file[0]
+            pixmap = QPixmap(image_path)
+            puxmap = pixmap.scaledToHeight(183)
+            self.displayimage.setPixmap(QPixmap(puxmap))
+            baseimage = open(image_path, 'rb')
+            baseimagereal = baseimage.read()
+        except:
+            pass
+        #self.baseimage.setText(baseimagereal)
     #back to first page
     def goback(self):
         setuppage.listgood = []
@@ -1695,7 +1956,7 @@ class setuppage(QDialog):
         elif bigtag == "Others":
             self.smalltag.clear()
             self.smalltag.addItem("Others")
-            
+#DONE         
 class deletepage(QDialog):
     def __init__(self):
         super(deletepage, self).__init__()
@@ -1707,23 +1968,31 @@ class deletepage(QDialog):
         back = Firstpage()
         widget.addWidget(back)
         widget.setCurrentIndex(widget.currentIndex()+1)
-    #delete account
+    #delete account done
     def delete(self):
         proid = self.productid.text()
         password = self.password.text()
         if proid == "" or password == "":
-            self.errormessage.setText("All fields are required")
-
-class matchpage(QDialog):
-    def __init__(self):
-        super(matchpage, self).__init__()
-        loadUi("matchpage.ui", self)
-        self.returntologin.clicked.connect(self.gologin)
-    #back to login page
-    def gologin(self):
-        login = loginpage()
-        widget.addWidget(login)
-        widget.setCurrentIndex(widget.currentIndex()+1)
+            self.errormessage.setText("Input all fields")
+        else:
+            connect = sqlite3.connect("account.db")
+            cur = connect.cursor()
+            query = 'SELECT productpassword FROM login WHERE productID =\''+proid+"\'"
+            cur.execute(query)
+            try:
+                result = cur.fetchone()[0]
+                if result == password:
+                    newquery = 'DELETE FROM login WHERE productID =\''+proid+"\'"
+                    cur.execute(newquery)
+                    connect.commit()
+                    connect.close()
+                    match = Firstpage()
+                    widget.addWidget(match)
+                    widget.setCurrentIndex(widget.currentIndex()+1)
+                else:
+                    self.errormessage.setText("Invalid password")
+            except:
+                self.errormessage.setText("Account does not exist")
 
 app = QApplication(sys.argv)
 first = Firstpage()
@@ -1733,4 +2002,3 @@ widget.setFixedHeight(800)
 widget.setFixedWidth(1200)
 widget.show()
 sys.exit(app.exec_())
-
