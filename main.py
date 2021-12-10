@@ -4,8 +4,6 @@ from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QDialog, QApplication, QWidget, QFileDialog, QLabel
 from PyQt5.QtGui import QPixmap
 import sqlite3
-
-
 #DONE  
 class Firstpage(QDialog):
     def __init__(self):
@@ -126,7 +124,7 @@ class matchpage(QDialog):
         newlabel.setText("")
         pixmap = QPixmap()
         pixmap.loadFromData(blobimage)
-        puxmap = pixmap.scaledToHeight(183)
+        puxmap = pixmap.scaled(183,183)
         newlabel.setPixmap(puxmap)
         return newlabel
     #back to login
@@ -1880,7 +1878,7 @@ class setuppage(QDialog):
             file = QFileDialog.getOpenFileName(self, 'Open File', 'c:', 'Image Files (*.png *.jpg *gif)')
             image_path = file[0]
             pixmap = QPixmap(image_path)
-            puxmap = pixmap.scaledToHeight(183)
+            puxmap = pixmap.scaled(183,183)
             self.displayimage.setPixmap(QPixmap(puxmap))
             baseimage = open(image_path, 'rb')
             baseimagereal = baseimage.read()
@@ -2002,3 +2000,4 @@ widget.setFixedHeight(800)
 widget.setFixedWidth(1200)
 widget.show()
 sys.exit(app.exec_())
+
