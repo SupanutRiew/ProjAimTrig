@@ -7,7 +7,7 @@ import sqlite3
 #DONE  
 class Firstpage(QDialog):
     def __init__(self):
-        super(Firstpage, self).__init__()
+        super(Firstpage, self).__init__()   #use init of QDialog
         loadUi("Firstpage.ui",self)
         self.gotologinpage.clicked.connect(self.login)
         self.setup.clicked.connect(self.setupchyt)
@@ -15,8 +15,8 @@ class Firstpage(QDialog):
     #go to login page
     def login(self):
         login = Loginpage()
-        widget.addWidget(login)
-        widget.setCurrentIndex(widget.currentIndex()+1)
+        widget.addWidget(login)#currently firstpage is widget A and login page is widget A+1
+        widget.setCurrentIndex(widget.currentIndex()+1)#go to login page by set index A+1
     #go to setup page
     def setupchyt(self):
         setup = setuppage()
@@ -42,7 +42,7 @@ class Loginpage(QDialog):
     #login
     def loginfunc(self):
         global myfuckingid
-        global tofindmatch
+        global tofindmatch   #this will be used in the matchpage
         global tofindgoal
         proid = self.productid.text()
         password = self.password.text()
@@ -58,11 +58,11 @@ class Loginpage(QDialog):
                 if result == password:
                     newquery = 'SELECT producttag FROM login WHERE productID =\''+proid+"\'"
                     cur.execute(newquery)
-                    tofindmatch = cur.fetchone()[0]
+                    tofindmatch = cur.fetchone()[0] #later
                     ewquery = 'SELECT goaltag FROM login WHERE productID =\''+proid+"\'"
                     cur.execute(ewquery)
-                    tofindgoal = cur.fetchone()[0]
-                    myfuckingid = proid
+                    tofindgoal = cur.fetchone()[0] #later
+                    myfuckingid = proid #later
                     match = matchpage()
                     widget.addWidget(match)
                     widget.setCurrentIndex(widget.currentIndex()+1)
@@ -90,7 +90,7 @@ class matchpage(QDialog):
         rowcount = 1
         table =0
         addshit = 0
-        for row in cur.execute(sqlquery):
+        for row in cur.execute(sqlquery):#look into each data one at a time
             
             hisid, name, descrip, contact, blobimage, hisgoal, histag =  row[0], row[3], row[4], row[2], row[7], row[6], row[5]
             if myfuckingid != hisid:
@@ -98,7 +98,7 @@ class matchpage(QDialog):
                     if histag in tofindgoal:
                         addshit+= 1
                         if addshit >= 3:
-                            self.tableWidget.setColumnWidth(0, 273)
+                            self.tableWidget.setColumnWidth(0, 273)#change width size due to additional scroll area
                             self.tableWidget.setColumnWidth(1, 274)
                             self.tableWidget.setColumnWidth(2, 273)
                             self.tableWidget.setColumnWidth(3, 183)
@@ -106,8 +106,6 @@ class matchpage(QDialog):
                         self.tableWidget.setRowCount(rowcount)
                         self.tableWidget.setRowHeight(table, 183)
                         #change this shit image
-                                                        #fucking shit pictures
-                        
                         self.tableWidget.setItem(table, 0, QtWidgets.QTableWidgetItem(name))
                         self.tableWidget.setItem(table, 1, QtWidgets.QTableWidgetItem(descrip))
                         self.tableWidget.setItem(table, 2, QtWidgets.QTableWidgetItem(contact))
@@ -120,12 +118,12 @@ class matchpage(QDialog):
                         
     def getImageLabel(self,blobimage):
         #เป็นเหี้ยอะไรวะไอสัส
-        newlabel = QtWidgets.QLabel()
+        newlabel = QtWidgets.QLabel()#add new label
         newlabel.setText("")
         pixmap = QPixmap()
-        pixmap.loadFromData(blobimage)
+        pixmap.loadFromData(blobimage)#get image
         puxmap = pixmap.scaled(183,183)
-        newlabel.setPixmap(puxmap)
+        newlabel.setPixmap(puxmap) #set image to label
         return newlabel
     #back to login
     def gologin(self):
@@ -134,15 +132,14 @@ class matchpage(QDialog):
         widget.setCurrentIndex(widget.currentIndex()+1)
 
 class setuppage(QDialog):
-    listgood = []
     def __init__(self):
         super(setuppage, self).__init__()
         loadUi("setuppage.ui",self)
+        setuppage.listgood = []
         self.gobackfromsetup.clicked.connect(self.goback)
         self.mytag.currentIndexChanged.connect(self.realtag)
         self.uploadimagebutton.clicked.connect(self.loadimage)
         self.finishsetupbutton.clicked.connect(self.confirm)
-        
         self.checkallclothes.clicked.connect(self.allclothes)
         self.checkallaccessories.clicked.connect(self.allaccessories)
         self.checkallshoes.clicked.connect(self.allshoes)
@@ -298,7 +295,7 @@ class setuppage(QDialog):
         name = self.productname.text()
         prodtag = self.smalltag.currentText()
         descrip = self.description.toPlainText()
-        goal = self.listgood
+        goal = setuppage.listgood
         # how tf do i add picture
         if prodid == "" or passw == "" or contact == "" or name == "" or descrip == "":
             self.errormessage.setText("Fill Out All Fields")
@@ -317,14 +314,14 @@ class setuppage(QDialog):
             if samecount > 0:
                 self.errormessage.setText("This Product ID already exists")
             else:
-                #this comes after same id
+                #use % to separate instead of list
                 self.errormessage.setText("")
                 goalstring = '%'.join([str(item) for item in goal])
                 goalstring = '%' + goalstring + '%'
                 prodtag = '%' + prodtag + '%'
           
                 try:
-                    info = [prodid, passw, contact, name, descrip, prodtag, goalstring, baseimagereal]#add image duay
+                    info = [prodid, passw, contact, name, descrip, prodtag, goalstring, baseimagereal]#add image duay(Global variable from addimage function
                     cur.execute('INSERT INTO login VALUES(?,?,?,?,?,?,?,?)', info)
                     connect.commit()
                     connect.close()
@@ -609,7 +606,7 @@ class setuppage(QDialog):
         self.golf.setChecked(True)
         self.rugby.setChecked(True)
         self.otherbags_2.setChecked(True)
-        
+    #check all
     def fuckin(self):
         self.others.setChecked(True)
         
@@ -744,7 +741,7 @@ class setuppage(QDialog):
         self.rugby.setChecked(True)
         self.otherbags_2.setChecked(True)
 
-
+#All checkbox starts here____________________________________________________________________________
         
     #check box pajamas
     def pajamasclothes(self):
@@ -1880,8 +1877,8 @@ class setuppage(QDialog):
             pixmap = QPixmap(image_path)
             puxmap = pixmap.scaled(183,183)
             self.displayimage.setPixmap(QPixmap(puxmap))
-            baseimage = open(image_path, 'rb')
-            baseimagereal = baseimage.read()
+            baseimage = open(image_path, 'rb')#rb because it's binary data
+            baseimagereal = baseimage.read() #will be used to save when the user click done
         except:
             pass
         #self.baseimage.setText(baseimagereal)
@@ -1992,12 +1989,11 @@ class deletepage(QDialog):
             except:
                 self.errormessage.setText("Account does not exist")
 
-app = QApplication(sys.argv)
+app = QApplication(sys.argv) #execute script
 first = Firstpage()
-widget = QtWidgets.QStackedWidget()
-widget.addWidget(first)
+widget = QtWidgets.QStackedWidget() 
+widget.addWidget(first) #add and set up the first page
 widget.setFixedHeight(800)
 widget.setFixedWidth(1200)
 widget.show()
-sys.exit(app.exec_())
-
+sys.exit(app.exec_()) #exit python
