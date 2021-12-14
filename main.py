@@ -90,7 +90,7 @@ class threewaypage(QDialog):
         self.tableWidget.setVisible(True)
         connect = sqlite3.connect("account.db")
         cur = connect.cursor()
-        sqlquery = "SELECT * FROM login ORDER BY RANDOM()"
+        sqlquery = "SELECT * FROM login"
         rowcount = 1                                    #tofindmatch is my product tag                      tofindgoal is my goal
         table = 0
         addshit = 0
@@ -165,7 +165,7 @@ class matchpage(QDialog):
         self.tableWidget.setVisible(True)
         connect = sqlite3.connect("account.db")
         cur = connect.cursor()
-        sqlquery = "SELECT * FROM login ORDER BY RANDOM()"
+        sqlquery = "SELECT * FROM login"
         rowcount = 1
         table =0
         addshit = 0
