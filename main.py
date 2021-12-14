@@ -70,6 +70,79 @@ class Loginpage(QDialog):
                     self.errormessage.setText("Invalid password")
             except:
                 self.errormessage.setText("Account does not exist")
+                
+class threewaypage(QDialog):
+    def __init__(self):
+        super(threewaypage, self).__init__()
+        loadUi("threeway.ui", self)
+        self.tableWidget.setColumnWidth(0, 279)
+        self.tableWidget.setColumnWidth(1, 279)
+        self.tableWidget.setColumnWidth(2, 279)
+        self.tableWidget.setColumnWidth(3, 183)
+        self.tableWidget.setVisible(False)
+        self.returntologin.clicked.connect(self.godirect)
+        self.showbutton.clicked.connect(self.display)
+    def godirect(self):
+        ii = matchpage()
+        widget.addWidget(ii)
+        widget.setCurrentIndex(widget.currentIndex()+1)
+    def display(self):
+        self.tableWidget.setVisible(True)
+        connect = sqlite3.connect("account.db")
+        cur = connect.cursor()
+        sqlquery = "SELECT * FROM login ORDER BY RANDOM()"
+        rowcount = 1                                    #tofindmatch is my product tag                      tofindgoal is my goal
+        table = 0
+        addshit = 0
+        for row in cur.execute(sqlquery):#for second person
+            hisid, name, contact, blobimage, hisgoal, histag =  row[0], row[3], row[2], row[7], row[6], row[5]
+            if myfuckingid != hisid:
+                if tofindmatch in hisgoal:
+                    if histag not in tofindgoal:#the second peson wants what first have
+                        print("pass the seconnd person")
+                        for jim in cur.execute(sqlquery):
+                            thirdid, thirdname, thirdcontact, thirdimage, thirdgoal, thirdtag = jim[0], jim[3], jim[2], jim[7], jim[6], jim[5]
+                            print("pass getting third info")
+                            if myfuckingid != thirdid:
+                                if hisid != thirdid:
+                                    print("pass detect same id")
+                                    if histag in thirdgoal:
+                                        if thirdtag not in hisgoal:
+                                            if thirdtag in tofindgoal:
+                                                if tofindmatch not in thirdgoal:
+                                                    print("1")
+                                                    addshit +=1
+                                                    if addshit >= 3:
+                                                        self.tableWidget.setColumnWidth(0, 273)
+                                                        self.tableWidget.setColumnWidth(1, 274)
+                                                        self.tableWidget.setColumnWidth(2, 273)
+                                                        self.tableWidget.setColumnWidth(3, 183)
+                                                    self.tableWidget.setRowCount(rowcount)
+                                                    self.tableWidget.setRowHeight(table, 183)
+                                                    print(thirdname)
+                                                    self.tableWidget.setItem(table, 0, QtWidgets.QTableWidgetItem(contact))
+                                                        
+                                                    self.tableWidget.setItem(table, 1, QtWidgets.QTableWidgetItem(thirdcontact))
+                                                    self.tableWidget.setItem(table, 2, QtWidgets.QTableWidgetItem(thirdname))
+                                                    item = self.getImageLabel(thirdimage)
+                                                    self.tableWidget.setCellWidget(table, 3, item)
+                                                        
+                                                    rowcount+=1
+                                                    table+=1
+
+    def getImageLabel(self,blobimage):
+        #เป็นเหี้ยอะไรวะไอสัส
+        newlabel = QtWidgets.QLabel()#add new label
+        newlabel.setText("")
+        pixmap = QPixmap()
+        pixmap.loadFromData(blobimage)#get image
+        puxmap = pixmap.scaled(183,183)
+        newlabel.setPixmap(puxmap) #set image to label
+        print("pass get image")
+        return newlabel
+
+
+                                                
 class matchpage(QDialog):
     def __init__(self):
         super(matchpage, self).__init__()
@@ -81,12 +154,18 @@ class matchpage(QDialog):
         self.tableWidget.setVisible(False)
         self.returntologin.clicked.connect(self.gologin)
         self.showbutton.clicked.connect(self.display)
+        self.indirectmatch.clicked.connect(self.indy)
+    #3 ways matching
+    def indy(self):
+        indi = threewaypage()
+        widget.addWidget(indi)
+        widget.setCurrentIndex(widget.currentIndex()+1)
     #display on table
     def display(self):
         self.tableWidget.setVisible(True)
         connect = sqlite3.connect("account.db")
         cur = connect.cursor()
-        sqlquery = "SELECT * FROM login"
+        sqlquery = "SELECT * FROM login ORDER BY RANDOM()"
         rowcount = 1
         table =0
         addshit = 0
@@ -1989,11 +2068,11 @@ class deletepage(QDialog):
             except:
                 self.errormessage.setText("Account does not exist")
 
-app = QApplication(sys.argv) #execute script
+app = QApplication(sys.argv)
 first = Firstpage()
 widget = QtWidgets.QStackedWidget() 
 widget.addWidget(first) #add and set up the first page
 widget.setFixedHeight(800)
 widget.setFixedWidth(1200)
 widget.show()
-sys.exit(app.exec_()) #exit python
+sys.exit(app.exec_()) #exit
